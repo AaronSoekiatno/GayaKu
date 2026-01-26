@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { IoColorPaletteOutline, IoScanOutline, IoSparklesOutline } from 'react-icons/io5';
 import CameraView from '@/components/camera/CameraView';
 import EarringCanvas from '@/components/earrings/EarringCanvas';
 import EarringGallery from '@/components/earrings/EarringGallery';
@@ -25,17 +26,17 @@ export default function Home() {
     return (
       <div className="min-h-screen flex flex-col">
         {/* Header */}
-        <header className="p-10 flex items-center justify-between">
-          <h1 className="text-2xl">GayaKu</h1>
+        <header className="p-12 flex items-center justify-between">
+          <h1 className="text-3xl md:text-5xl font-bold gradient-text">GayaKu</h1>
         </header>
 
         {/* Hero Section */}
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="text-center max-w-2xl animate-fade-in">
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 gradient-text">
+        <div className="flex-1 w-full px-4">
+          <div className="mx-auto w-full max-w-5xl animate-fade-in pt-8 md:pt-12 pb-16 text-center">
+            <h2 className="text-2xl md:text-5xl font-bold mb-6 gradient-text">
               Try On Earrings Instantly
             </h2>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-600 mb-8 mx-auto max-w-2xl">
               Use AI-powered face detection to see how different earring styles look on you in real-time
             </p>
             <Button
@@ -48,21 +49,27 @@ export default function Home() {
             </Button>
 
             {/* Features */}
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-              <div className="glass rounded-xl p-6">
-                <div className="text-3xl mb-3">📸</div>
-                <h3 className="text-lg font-semibold mb-2">Real-Time Preview</h3>
-                <p className="text-sm text-gray-500">See earrings on your face instantly with live tracking</p>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="glass hover-lift rounded-xl p-12 min-h-[280px] overflow-hidden min-w-0 flex flex-col items-center">
+                <IoColorPaletteOutline className="mx-auto h-8 w-8 text-gray-500" aria-hidden="true" />
+                <h3 className="mt-7 text-lg font-semibold">Style Preferences</h3>
+                <p className="mt-3 text-md text-gray-500 leading-relaxed break-words">
+                  Explore different earrings by your favorite brands, colors, and styles.
+                </p>
               </div>
-              <div className="glass rounded-xl p-6">
-                <div className="text-3xl mb-3">🔒</div>
-                <h3 className="text-lg font-semibold mb-2">Privacy First</h3>
-                <p className="text-sm text-gray-500">All processing happens in your browser</p>
+              <div className="glass hover-lift rounded-xl p-12 min-h-[280px] overflow-hidden min-w-0 flex flex-col items-center">
+                <IoSparklesOutline className="mx-auto h-8 w-8 text-gray-500" aria-hidden="true" />
+                <h3 className="mt-7 text-lg font-semibold">Virtual Try-On</h3>
+                <p className="mt-3 text-md text-gray-500 leading-relaxed break-words">
+                  Experience a virtual try-on of earrings using our AR technology, ensuring you look good before you buy.
+                </p>
               </div>
-              <div className="glass rounded-xl p-6">
-                <div className="text-3xl mb-3">✨</div>
-                <h3 className="text-lg font-semibold mb-2">No Installation</h3>
-                <p className="text-sm text-gray-500">Works directly in your web browser</p>
+              <div className="glass hover-lift rounded-xl p-12 min-h-[280px] overflow-hidden min-w-0 flex flex-col items-center">
+                <IoScanOutline className="mx-auto h-8 w-8 text-gray-500" aria-hidden="true" />
+                <h3 className="mt-7 text-lg font-semibold">Smart Face Scan</h3>
+                <p className="mt-3 text-md text-gray-500 leading-relaxed break-words">
+                  Our technology scans and analyzes your face shape to recommend and explain your best-fit earrings and hair styles.
+                </p>
               </div>
             </div>
           </div>
@@ -75,8 +82,19 @@ export default function Home() {
   return (
     <div className="min-h-screen p-4 md:p-8">
       {/* Header */}
-      <header className="mb-8 animate-fade-in">
-        <h1 className="text-3xl">GayaKu</h1>
+      <header className="mb-8 animate-fade-in flex justify-end items-center">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsCameraActive(false)}
+          className="flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Close
+        </Button>
       </header>
 
       <div className="max-w-7xl mx-auto">
@@ -129,49 +147,27 @@ export default function Home() {
           </div>
 
           {/* Info Panel */}
-          <div className="space-y-6">
-            <div className="glass-strong rounded-xl p-6 animate-fade-in">
+          <div className="space-y-8">
+            <div className="animate-fade-in">
               <h2 className="text-2xl font-semibold mb-4 gradient-text">How It Works</h2>
-              <ol className="space-y-3 text-gray-300">
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-sm font-semibold">1</span>
+              <ol className="space-y-4 text-gray-600">
+                <li className="flex gap-3 items-center">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">1</span>
                   <span>Allow camera access when prompted</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-sm font-semibold">2</span>
+                <li className="flex gap-3 items-center">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">2</span>
                   <span>Position your face in the camera view</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-sm font-semibold">3</span>
+                <li className="flex gap-3 items-center">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">3</span>
                   <span>Select earring styles below to try them on</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-sm font-semibold">4</span>
+                <li className="flex gap-3 items-center">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">4</span>
                   <span>Move your head to see how they look from different angles</span>
                 </li>
               </ol>
-            </div>
-
-            <div className="glass-strong rounded-xl p-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <h3 className="text-xl font-semibold mb-3 text-gold-400">✨ Features</h3>
-              <ul className="space-y-2 text-gray-300 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-400">•</span>
-                  <span>Real-time face tracking</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-400">•</span>
-                  <span>Instant earring try-on</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-400">•</span>
-                  <span>No app installation needed</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-gold-400">•</span>
-                  <span>Privacy-first (all processing in browser)</span>
-                </li>
-              </ul>
             </div>
           </div>
         </div>

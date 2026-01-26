@@ -71,7 +71,12 @@ body {
   overflow-x: hidden;
 }
 
-/* Typography */
+/*
+  Typography (Tailwind-first)
+  - Keep global styles minimal to avoid fighting Tailwind utilities.
+  - Avoid setting element font-sizes globally (use Tailwind `text-*` per component).
+  - Prefer reusable utilities for “design system” effects (e.g. `.gradient-text`, `.glass`).
+*/
 h1,
 h2,
 h3,
@@ -79,26 +84,10 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  font-weight: 700;
   line-height: 1.2;
-  margin: 0;
 }
 
-h1 {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  background: linear-gradient(135deg, var(--color-text-primary) 0%, var(--color-gold-light) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-h2 {
-  font-size: clamp(2rem, 4vw, 3rem);
-}
-
-h3 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-}
+/* NOTE: We intentionally do NOT set fixed font-sizes for headings here. */
 
 /* Glassmorphism Utilities */
 .glass {
@@ -184,11 +173,11 @@ h3 {
 
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(107, 70, 193, 0.3);
+    box-shadow: 0 0 20px rgba(209, 213, 219, 0.35);
   }
 
   50% {
-    box-shadow: 0 0 40px rgba(107, 70, 193, 0.6);
+    box-shadow: 0 0 40px rgba(209, 213, 219, 0.7);
   }
 }
 
@@ -215,7 +204,7 @@ h3 {
 
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(107, 70, 193, 0.4);
+  box-shadow: 0 12px 40px rgba(209, 213, 219, 0.8);
 }
 
 /* Scrollbar Styling */

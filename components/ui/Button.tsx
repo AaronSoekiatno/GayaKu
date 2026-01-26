@@ -13,7 +13,8 @@ export default function Button({
     className = '',
     ...props
 }: ButtonProps) {
-    const baseStyles = 'font-medium rounded-full transition-all duration-300 hover-lift disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles =
+        'cursor-pointer font-medium rounded-full transition-all duration-300 hover-lift disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
         primary: 'bg-[#d4af37] text-white shadow-lg hover:shadow-xl hover:bg-[#aa8c2c]',

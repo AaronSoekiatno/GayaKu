@@ -45,10 +45,10 @@ export default function EarringGallery({
                             </div>
 
                             <div className="text-center">
-                                <h4 className="font-semibold text-sm mb-1 text-gray-100">
+                                <h4 className="font-bold text-base mb-1 text-white">
                                     {earring.name}
                                 </h4>
-                                <p className="text-xs text-gray-400 capitalize">
+                                <p className="text-sm text-gold-400 capitalize font-medium">
                                     {earring.category}
                                 </p>
                             </div>
