@@ -1,21 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { IoColorPaletteOutline, IoScanOutline, IoSparklesOutline } from 'react-icons/io5';
+import { IoColorPaletteOutline, IoScanOutline, IoSparklesOutline, IoHandLeftOutline } from 'react-icons/io5';
 import CameraView from '@/components/camera/CameraView';
 import EarringCanvas from '@/components/earrings/EarringCanvas';
 import EarringGallery from '@/components/earrings/EarringGallery';
+import EarringControls from '@/components/earrings/EarringControls';
+import GestureOverlay from '@/components/earrings/GestureOverlay';
 import useFaceDetection from '@/hooks/useFaceDetection';
+import useHandTracking from '@/hooks/useHandTracking';
 import { earringStyles } from '@/lib/earring-data';
-import { EarringStyle } from '@/lib/types';
+import { EarringStyle, EarringCustomization } from '@/lib/types';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
+
+const DEFAULT_CUSTOMIZATION: EarringCustomization = {
+  scale: 1,
+  offsetX: 0,
+  offsetY: 15, // Default offset down toward earlobe
+};
 
 export default function Home() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const [selectedEarring, setSelectedEarring] = useState<EarringStyle | null>(earringStyles[0]);
+  const [customization, setCustomization] = useState<EarringCustomization>(DEFAULT_CUSTOMIZATION);
+  const [gestureMode, setGestureMode] = useState(false);
   const { landmarks, isModelLoaded, error } = useFaceDetection(videoElement);
+  const { pinchState, isModelLoaded: isHandModelLoaded } = useHandTracking(videoElement, gestureMode);
+
+  const handleResetCustomization = () => {
+    setCustomization(DEFAULT_CUSTOMIZATION);
+  };
 
   // Get video dimensions for canvas
   const canvasWidth = videoElement?.videoWidth || 1280;
@@ -33,7 +49,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="flex-1 w-full px-4">
           <div className="mx-auto w-full max-w-5xl animate-fade-in pt-8 md:pt-12 pb-16 text-center">
-            <h2 className="text-2xl md:text-5xl font-bold mb-6 gradient-text">
+            <h2 className="text-2xl md:text-6xl font-bold mb-6 gradient-text">
               Try On Earrings Instantly
             </h2>
             <p className="text-xl text-gray-600 mb-8 mx-auto max-w-2xl">
@@ -113,6 +129,19 @@ export default function Home() {
                   selectedEarrings={selectedEarring ? [selectedEarring] : []}
                   canvasWidth={canvasWidth}
                   canvasHeight={canvasHeight}
+                  customization={customization}
+                />
+              )}
+
+              {/* Gesture Overlay for pinch-to-drag */}
+              {gestureMode && landmarks && (
+                <GestureOverlay
+                  pinchState={pinchState}
+                  landmarks={landmarks}
+                  customization={customization}
+                  onCustomizationChange={setCustomization}
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
                 />
               )}
 
@@ -131,7 +160,7 @@ export default function Home() {
                 <div className="absolute bottom-4 left-4 glass px-4 py-2 rounded-full">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${landmarks ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
-                    <span className="text-sm text-gray-200">
+                    <span className="text-sm text-black">
                       {landmarks ? 'Face detected' : 'Looking for face...'}
                     </span>
                   </div>
@@ -148,27 +177,50 @@ export default function Home() {
 
           {/* Info Panel */}
           <div className="space-y-8">
-            <div className="animate-fade-in">
-              <h2 className="text-2xl font-semibold mb-4 gradient-text">How It Works</h2>
-              <ol className="space-y-4 text-gray-600">
-                <li className="flex gap-3 items-center">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">1</span>
-                  <span>Allow camera access when prompted</span>
-                </li>
-                <li className="flex gap-3 items-center">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">2</span>
-                  <span>Position your face in the camera view</span>
-                </li>
-                <li className="flex gap-3 items-center">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">3</span>
-                  <span>Select earring styles below to try them on</span>
-                </li>
-                <li className="flex gap-3 items-center">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">4</span>
-                  <span>Move your head to see how they look from different angles</span>
-                </li>
-              </ol>
-            </div>
+            {/* Customization Controls */}
+            {selectedEarring && isModelLoaded && (
+              <div className="animate-fade-in space-y-4">
+                <EarringControls
+                  customization={customization}
+                  onChange={setCustomization}
+                  onReset={handleResetCustomization}
+                />
+
+                {/* Gesture Mode Toggle */}
+                <div className="glass rounded-xl p-4">
+                  <button
+                    onClick={() => setGestureMode(!gestureMode)}
+                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                      gestureMode
+                        ? 'bg-[#d4af37]/20 border border-[#d4af37]'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <IoHandLeftOutline className={`w-5 h-5 ${gestureMode ? 'text-[#d4af37]' : 'text-gray-600'}`} />
+                      <div className="text-left">
+                        <p className={`text-sm font-medium ${gestureMode ? 'text-[#d4af37]' : 'text-gray-700'}`}>
+                          Gesture Control
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Pinch and drag to adjust
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full transition-colors ${gestureMode ? 'bg-[#d4af37]' : 'bg-gray-300'}`}>
+                      <div className={`w-4 h-4 mt-1 rounded-full bg-white shadow transition-transform ${gestureMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                    </div>
+                  </button>
+                  {gestureMode && !isHandModelLoaded && (
+                    <p className="text-xs text-gray-500 mt-2 text-center">Loading hand tracking...</p>
+                  )}
+                  {gestureMode && isHandModelLoaded && (
+                    <p className="text-xs text-[#d4af37] mt-2 text-center">Pinch near an earring and drag to move it</p>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 

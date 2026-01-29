@@ -75,6 +75,23 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
                         const leftEarLandmark = faceLandmarks[234];
                         const rightEarLandmark = faceLandmarks[454];
 
+                        // Calculate face yaw (horizontal rotation) using nose and face edges
+                        // Nose tip: index 1, Left cheek edge: 234, Right cheek edge: 454
+                        const noseTip = faceLandmarks[1];
+
+                        // Calculate yaw based on nose position relative to face edges
+                        // When facing straight, nose is centered between ears
+                        // Yaw range: -1 (looking full left) to +1 (looking full right)
+                        let faceYaw = 0;
+                        if (noseTip && leftEarLandmark && rightEarLandmark) {
+                            const faceWidth = rightEarLandmark.x - leftEarLandmark.x;
+                            const noseCenterOffset = noseTip.x - (leftEarLandmark.x + faceWidth / 2);
+                            // Normalize to -1 to 1 range (nose can move about half the face width)
+                            faceYaw = (noseCenterOffset / (faceWidth / 2)) * 2;
+                            // Clamp to -1 to 1
+                            faceYaw = Math.max(-1, Math.min(1, faceYaw));
+                        }
+
                         if (leftEarLandmark && rightEarLandmark) {
                             setLandmarks({
                                 leftEar: {
@@ -84,7 +101,8 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
                                 rightEar: {
                                     x: rightEarLandmark.x,
                                     y: rightEarLandmark.y
-                                }
+                                },
+                                faceYaw
                             });
                         }
                     } else {

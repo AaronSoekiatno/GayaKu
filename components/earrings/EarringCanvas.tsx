@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { FaceLandmarks } from '@/lib/types';
+import { FaceLandmarks, EarringCustomization } from '@/lib/types';
 import { EarringStyle } from '@/lib/types';
 
 interface EarringCanvasProps {
@@ -10,14 +10,20 @@ interface EarringCanvasProps {
     selectedEarrings: EarringStyle[];
     canvasWidth: number;
     canvasHeight: number;
+    customization: EarringCustomization;
 }
+
+// Threshold for hiding earrings when face is turned too far
+// At 0.5 yaw, the ear starts becoming occluded
+const OCCLUSION_THRESHOLD = 0.45;
 
 export default function EarringCanvas({
     videoElement,
     landmarks,
     selectedEarrings,
     canvasWidth,
-    canvasHeight
+    canvasHeight,
+    customization
 }: EarringCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const earringImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
@@ -52,9 +58,9 @@ export default function EarringCanvas({
 
         if (!earringImage || !earringImage.complete) return;
 
-        // Calculate earring size based on scale factor
+        // Calculate earring size based on scale factor and customization
         const baseSize = 80; // Base size in pixels
-        const earringWidth = baseSize * (earring.scale || 1);
+        const earringWidth = baseSize * (earring.scale || 1) * customization.scale;
         const earringHeight = earringWidth; // Keep aspect ratio square for now
 
         // Convert normalized coordinates (0-1) to canvas coordinates
@@ -64,29 +70,55 @@ export default function EarringCanvas({
         const rightEarX = landmarks.rightEar.x * canvasWidth;
         const rightEarY = landmarks.rightEar.y * canvasHeight;
 
-        // Draw earring on left ear
-        ctx.save();
-        ctx.drawImage(
-            earringImage,
-            leftEarX - earringWidth / 2,
-            leftEarY - earringHeight / 4, // Offset slightly up from ear point
-            earringWidth,
-            earringHeight
-        );
-        ctx.restore();
+        // Calculate visibility based on face yaw
+        // faceYaw: negative = looking left, positive = looking right
+        const faceYaw = landmarks.faceYaw;
 
-        // Draw earring on right ear
-        ctx.save();
-        ctx.drawImage(
-            earringImage,
-            rightEarX - earringWidth / 2,
-            rightEarY - earringHeight / 4,
-            earringWidth,
-            earringHeight
-        );
-        ctx.restore();
+        // Show left earring when not looking too far left
+        // When faceYaw < -OCCLUSION_THRESHOLD, left ear is occluded (head turned left)
+        const showLeftEarring = faceYaw > -OCCLUSION_THRESHOLD;
 
-    }, [landmarks, selectedEarrings, canvasWidth, canvasHeight]);
+        // Show right earring when not looking too far right
+        // When faceYaw > OCCLUSION_THRESHOLD, right ear is occluded (head turned right)
+        const showRightEarring = faceYaw < OCCLUSION_THRESHOLD;
+
+        // Calculate opacity for smooth fade out near threshold
+        const leftOpacity = showLeftEarring
+            ? Math.min(1, (faceYaw + OCCLUSION_THRESHOLD) / 0.15)
+            : 0;
+        const rightOpacity = showRightEarring
+            ? Math.min(1, (OCCLUSION_THRESHOLD - faceYaw) / 0.15)
+            : 0;
+
+        // Draw earring on left ear (if visible)
+        if (leftOpacity > 0) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, leftOpacity));
+            ctx.drawImage(
+                earringImage,
+                leftEarX - earringWidth / 2 + customization.offsetX,
+                leftEarY + customization.offsetY,
+                earringWidth,
+                earringHeight
+            );
+            ctx.restore();
+        }
+
+        // Draw earring on right ear (if visible)
+        if (rightOpacity > 0) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, rightOpacity));
+            ctx.drawImage(
+                earringImage,
+                rightEarX - earringWidth / 2 - customization.offsetX, // Mirror X offset for right ear
+                rightEarY + customization.offsetY,
+                earringWidth,
+                earringHeight
+            );
+            ctx.restore();
+        }
+
+    }, [landmarks, selectedEarrings, canvasWidth, canvasHeight, customization]);
 
     return (
         <canvas

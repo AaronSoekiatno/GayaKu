@@ -10,7 +10,13 @@ export interface EarringStyle {
 export interface FaceLandmarks {
     leftEar: { x: number; y: number };
     rightEar: { x: number; y: number };
-    faceRotation?: number;
+    faceYaw: number; // Horizontal rotation: negative = looking left, positive = looking right
+}
+
+export interface EarringCustomization {
+    scale: number;      // Size multiplier (0.5 - 2.0)
+    offsetX: number;    // Horizontal offset (-50 to 50 pixels)
+    offsetY: number;    // Vertical offset (-50 to 50 pixels, positive = down toward earlobe)
 }
 
 export interface Recommendation {
