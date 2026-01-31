@@ -8,7 +8,7 @@ import Card from '@/components/ui/Card';
 interface EarringGalleryProps {
     earrings: EarringStyle[];
     selectedEarring: EarringStyle | null;
-    onSelectEarring: (earring: EarringStyle) => void;
+    onSelectEarring: (earring: EarringStyle | null) => void;
 }
 
 export default function EarringGallery({
@@ -45,11 +45,11 @@ export default function EarringGallery({
                             </div>
 
                             <div className="text-center">
-                                <h4 className="font-bold text-base mb-1 text-white">
+                                <h4 className="font-bold text-base mb-1 text-gray-800">
                                     {earring.name}
                                 </h4>
-                                <p className="text-sm text-gold-400 capitalize font-medium">
-                                    {earring.category}
+                                <p className="text-xs text-gray-600 leading-relaxed">
+                                    {earring.description}
                                 </p>
                             </div>
 
@@ -71,6 +71,57 @@ export default function EarringGallery({
                         </Card>
                     );
                 })}
+
+                {/* None Card - Last */}
+                <Card
+                    variant="glass"
+                    className={`
+                        cursor-pointer hover-lift transition-all duration-300
+                        ${selectedEarring === null ? 'ring-2 ring-gold-500 animate-glow' : 'opacity-80 hover:opacity-100'}
+                    `}
+                    onClick={() => onSelectEarring(null)}
+                >
+                    <div className="aspect-square relative mb-3 bg-gray-200/30 rounded-lg overflow-hidden flex items-center justify-center">
+                        <svg
+                            className="w-12 h-12 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </div>
+
+                    <div className="text-center">
+                        <h4 className="font-bold text-base mb-1 text-gray-800">
+                            None
+                        </h4>
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                            Remove earrings
+                        </p>
+                    </div>
+
+                    {selectedEarring === null && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-gold-500 rounded-full flex items-center justify-center">
+                            <svg
+                                className="w-4 h-4 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                    )}
+                </Card>
             </div>
         </div>
     );

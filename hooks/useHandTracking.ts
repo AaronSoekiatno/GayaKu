@@ -19,8 +19,15 @@ export interface PinchState {
     hand: 'left' | 'right' | null;
 }
 
+export interface HandGesture {
+    isOpenPalm: boolean;
+    position: { x: number; y: number } | null; // Normalized 0-1 coordinates
+    hand: 'left' | 'right' | null;
+}
+
 interface UseHandTrackingReturn {
     pinchState: PinchState;
+    openPalmGesture: HandGesture;
     isModelLoaded: boolean;
     error: string | null;
 }
@@ -39,16 +46,25 @@ export default function useHandTracking(
         position: null,
         hand: null
     });
+    const [openPalmGesture, setOpenPalmGesture] = useState<HandGesture>({
+        isOpenPalm: false,
+        position: null,
+        hand: null
+    });
     const [isModelLoaded, setIsModelLoaded] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const processResults = useCallback((results: HandResults) => {
         if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
             setPinchState({ isPinching: false, position: null, hand: null });
+            setOpenPalmGesture({ isOpenPalm: false, position: null, hand: null });
             return;
         }
 
-        // Check each detected hand for pinch gesture
+        let pinchDetected = false;
+        let openPalmDetected = false;
+
+        // Check each detected hand for gestures
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
             const landmarks = results.multiHandLandmarks[i];
             const handedness = results.multiHandedness?.[i]?.label?.toLowerCase() as 'left' | 'right';
@@ -57,7 +73,7 @@ export default function useHandTracking(
             const thumbTip = landmarks[4];
             const indexTip = landmarks[8];
 
-            // Calculate distance between thumb and index finger
+            // Calculate distance between thumb and index finger for pinch detection
             const distance = Math.sqrt(
                 Math.pow(thumbTip.x - indexTip.x, 2) +
                 Math.pow(thumbTip.y - indexTip.y, 2)
@@ -74,12 +90,47 @@ export default function useHandTracking(
                     // MediaPipe returns handedness from camera's perspective, flip for selfie view
                     hand: handedness === 'left' ? 'right' : 'left'
                 });
-                return;
+                pinchDetected = true;
+            }
+
+            // Check for open palm: all fingers extended (tips above PIP joints)
+            // Landmark indices: 8 (index tip), 12 (middle tip), 16 (ring tip), 20 (pinky tip)
+            // PIP joints: 6 (index), 10 (middle), 14 (ring), 18 (pinky)
+            const indexTipY = landmarks[8].y;
+            const indexPipY = landmarks[6].y;
+            const middleTipY = landmarks[12].y;
+            const middlePipY = landmarks[10].y;
+            const ringTipY = landmarks[16].y;
+            const ringPipY = landmarks[14].y;
+            const pinkyTipY = landmarks[20].y;
+            const pinkyPipY = landmarks[18].y;
+
+            // All fingertips should be above their PIP joints (lower Y value = higher on screen)
+            const allFingersExtended = 
+                indexTipY < indexPipY &&
+                middleTipY < middlePipY &&
+                ringTipY < ringPipY &&
+                pinkyTipY < pinkyPipY;
+
+            if (allFingersExtended && distance >= PINCH_THRESHOLD) {
+                // Open palm detected - use center of palm (wrist is index 0)
+                const wrist = landmarks[0];
+                setOpenPalmGesture({
+                    isOpenPalm: true,
+                    position: { x: wrist.x, y: wrist.y },
+                    hand: handedness === 'left' ? 'right' : 'left'
+                });
+                openPalmDetected = true;
             }
         }
 
-        // No pinch detected
-        setPinchState({ isPinching: false, position: null, hand: null });
+        // Reset states if gestures not detected
+        if (!pinchDetected) {
+            setPinchState({ isPinching: false, position: null, hand: null });
+        }
+        if (!openPalmDetected) {
+            setOpenPalmGesture({ isOpenPalm: false, position: null, hand: null });
+        }
     }, []);
 
     useEffect(() => {
@@ -175,6 +226,7 @@ export default function useHandTracking(
 
     return {
         pinchState,
+        openPalmGesture,
         isModelLoaded,
         error
     };

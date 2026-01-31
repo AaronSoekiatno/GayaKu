@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { IoColorPaletteOutline, IoScanOutline, IoSparklesOutline, IoHandLeftOutline } from 'react-icons/io5';
 import CameraView from '@/components/camera/CameraView';
 import EarringCanvas from '@/components/earrings/EarringCanvas';
@@ -16,22 +16,52 @@ import Button from '@/components/ui/Button';
 
 const DEFAULT_CUSTOMIZATION: EarringCustomization = {
   scale: 1,
-  offsetX: 0,
-  offsetY: 15, // Default offset down toward earlobe
+  leftOffsetX: 0,
+  leftOffsetY: 15,   // Default offset down toward earlobe
+  rightOffsetX: 0,
+  rightOffsetY: 15,  // Default offset down toward earlobe
 };
 
 export default function Home() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
-  const [selectedEarring, setSelectedEarring] = useState<EarringStyle | null>(earringStyles[0]);
+  const [selectedEarring, setSelectedEarring] = useState<EarringStyle | null>(null);
   const [customization, setCustomization] = useState<EarringCustomization>(DEFAULT_CUSTOMIZATION);
   const [gestureMode, setGestureMode] = useState(false);
   const { landmarks, isModelLoaded, error } = useFaceDetection(videoElement);
-  const { pinchState, isModelLoaded: isHandModelLoaded } = useHandTracking(videoElement, gestureMode);
+  const { pinchState, openPalmGesture, isModelLoaded: isHandModelLoaded } = useHandTracking(videoElement, gestureMode);
 
   const handleResetCustomization = () => {
     setCustomization(DEFAULT_CUSTOMIZATION);
   };
+
+  // Handle open palm gesture to select "none"
+  const openPalmTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (openPalmGesture.isOpenPalm && gestureMode) {
+      // Clear any existing timeout
+      if (openPalmTimeoutRef.current) {
+        clearTimeout(openPalmTimeoutRef.current);
+      }
+      
+      // Set a small delay to avoid accidental triggers
+      openPalmTimeoutRef.current = setTimeout(() => {
+        setSelectedEarring(null);
+      }, 500); // 500ms delay to confirm gesture
+    } else {
+      // Clear timeout if gesture stops
+      if (openPalmTimeoutRef.current) {
+        clearTimeout(openPalmTimeoutRef.current);
+        openPalmTimeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      if (openPalmTimeoutRef.current) {
+        clearTimeout(openPalmTimeoutRef.current);
+      }
+    };
+  }, [openPalmGesture.isOpenPalm, gestureMode]);
 
   // Get video dimensions for canvas
   const canvasWidth = videoElement?.videoWidth || 1280;
@@ -177,6 +207,36 @@ export default function Home() {
 
           {/* Info Panel */}
           <div className="space-y-8">
+            {/* How It Works - Show when no earring is selected */}
+            {!selectedEarring && (
+              <div className="animate-fade-in">
+                <h2 className="text-2xl font-semibold mb-4 gradient-text">How It Works</h2>
+                <div className="glass rounded-xl p-6 space-y-4">
+                  <div className="flex gap-3 items-start">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">1</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 mb-1">Select a style</p>
+                      <p className="text-xs text-gray-600">Choose an earring from the gallery below</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">2</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 mb-1">See it on you</p>
+                      <p className="text-xs text-gray-600">The earring appears on your ears in real-time</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-sm font-semibold text-white shadow-md">3</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 mb-1">Adjust & explore</p>
+                      <p className="text-xs text-gray-600">Move your head or adjust size to see different angles</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Customization Controls */}
             {selectedEarring && isModelLoaded && (
               <div className="animate-fade-in space-y-4">

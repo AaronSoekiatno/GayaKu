@@ -14,9 +14,11 @@ export interface FaceLandmarks {
 }
 
 export interface EarringCustomization {
-    scale: number;      // Size multiplier (0.5 - 2.0)
-    offsetX: number;    // Horizontal offset (-50 to 50 pixels)
-    offsetY: number;    // Vertical offset (-50 to 50 pixels, positive = down toward earlobe)
+    scale: number;           // Size multiplier (0.5 - 2.0)
+    leftOffsetX: number;     // Left earring horizontal offset
+    leftOffsetY: number;     // Left earring vertical offset
+    rightOffsetX: number;    // Right earring horizontal offset
+    rightOffsetY: number;    // Right earring vertical offset
 }
 
 export interface Recommendation {

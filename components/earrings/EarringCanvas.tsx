@@ -96,8 +96,8 @@ export default function EarringCanvas({
             ctx.globalAlpha = Math.max(0, Math.min(1, leftOpacity));
             ctx.drawImage(
                 earringImage,
-                leftEarX - earringWidth / 2 + customization.offsetX,
-                leftEarY + customization.offsetY,
+                leftEarX - earringWidth / 2 + customization.leftOffsetX,
+                leftEarY + customization.leftOffsetY,
                 earringWidth,
                 earringHeight
             );
@@ -110,8 +110,8 @@ export default function EarringCanvas({
             ctx.globalAlpha = Math.max(0, Math.min(1, rightOpacity));
             ctx.drawImage(
                 earringImage,
-                rightEarX - earringWidth / 2 - customization.offsetX, // Mirror X offset for right ear
-                rightEarY + customization.offsetY,
+                rightEarX - earringWidth / 2 + customization.rightOffsetX,
+                rightEarY + customization.rightOffsetY,
                 earringWidth,
                 earringHeight
             );
