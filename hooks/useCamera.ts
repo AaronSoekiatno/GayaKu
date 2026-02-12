@@ -10,6 +10,44 @@ export default function useCamera() {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
+    // Helper function to attach stream to video element
+    const attachStreamToVideo = useCallback(async (mediaStream: MediaStream) => {
+        if (!videoRef.current) {
+            console.warn('[useCamera] attachStreamToVideo: videoRef.current is null');
+            return;
+        }
+
+        console.log('[useCamera] Attaching stream to video element:', {
+            videoExists: !!videoRef.current,
+            currentSrc: videoRef.current.src,
+            currentSrcObject: videoRef.current.srcObject,
+            streamId: mediaStream.id
+        });
+
+        videoRef.current.srcObject = mediaStream;
+        
+        console.log('[useCamera] Video element state after attachment:', {
+            srcObject: !!videoRef.current.srcObject,
+            readyState: videoRef.current.readyState,
+            videoWidth: videoRef.current.videoWidth,
+            videoHeight: videoRef.current.videoHeight,
+            paused: videoRef.current.paused
+        });
+
+        // Explicitly play the video to handle autoplay policies
+        try {
+            console.log('[useCamera] Attempting to play video...');
+            await videoRef.current.play();
+            console.log('[useCamera] Video play() succeeded');
+        } catch (playError) {
+            console.error('[useCamera] Video autoplay failed:', playError);
+            console.error('[useCamera] Play error details:', {
+                name: playError instanceof Error ? playError.name : 'Unknown',
+                message: playError instanceof Error ? playError.message : String(playError)
+            });
+        }
+    }, []);
+
     const startCamera = useCallback(async () => {
         console.log('[useCamera] startCamera called');
         console.log('[useCamera] Environment:', {
@@ -102,38 +140,13 @@ export default function useCamera() {
             setStream(mediaStream);
             setHasPermission(true);
 
-            // Attach stream to video element
+            // Try to attach stream to video element if available
+            // If not available, the useEffect below will handle it
             if (videoRef.current) {
-                console.log('[useCamera] Attaching stream to video element:', {
-                    videoExists: !!videoRef.current,
-                    currentSrc: videoRef.current.src,
-                    currentSrcObject: videoRef.current.srcObject
-                });
-
-                videoRef.current.srcObject = mediaStream;
-                
-                console.log('[useCamera] Video element state:', {
-                    srcObject: !!videoRef.current.srcObject,
-                    readyState: videoRef.current.readyState,
-                    videoWidth: videoRef.current.videoWidth,
-                    videoHeight: videoRef.current.videoHeight,
-                    paused: videoRef.current.paused
-                });
-
-                // Explicitly play the video to handle autoplay policies
-                try {
-                    console.log('[useCamera] Attempting to play video...');
-                    await videoRef.current.play();
-                    console.log('[useCamera] Video play() succeeded');
-                } catch (playError) {
-                    console.error('[useCamera] Video autoplay failed:', playError);
-                    console.error('[useCamera] Play error details:', {
-                        name: playError instanceof Error ? playError.name : 'Unknown',
-                        message: playError instanceof Error ? playError.message : String(playError)
-                    });
-                }
+                console.log('[useCamera] Video element available, attaching stream immediately');
+                attachStreamToVideo(mediaStream);
             } else {
-                console.warn('[useCamera] videoRef.current is null, cannot attach stream');
+                console.log('[useCamera] Video element not yet available, will attach when ready');
             }
         } catch (err) {
             console.error('[useCamera] Camera access error:', err);
@@ -164,7 +177,7 @@ export default function useCamera() {
             setIsLoading(false);
             console.log('[useCamera] startCamera completed, isLoading set to false');
         }
-    }, []);
+    }, [attachStreamToVideo]);
 
     // Auto-start camera when component mounts
     useEffect(() => {
@@ -195,6 +208,14 @@ export default function useCamera() {
         };
     }, [startCamera]);
 
+    // Attach stream when both stream and video element are available
+    useEffect(() => {
+        if (streamRef.current && videoRef.current && !videoRef.current.srcObject) {
+            console.log('[useCamera] Stream and video element both available, attaching stream');
+            attachStreamToVideo(streamRef.current);
+        }
+    }, [stream, attachStreamToVideo]);
+
     // Log state changes
     useEffect(() => {
         console.log('[useCamera] State changed:', {
@@ -202,7 +223,8 @@ export default function useCamera() {
             hasPermission,
             error,
             hasStream: !!stream,
-            hasVideoRef: !!videoRef.current
+            hasVideoRef: !!videoRef.current,
+            hasSrcObject: !!videoRef.current?.srcObject
         });
     }, [isLoading, hasPermission, error, stream]);
 
