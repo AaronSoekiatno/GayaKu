@@ -47,9 +47,5 @@ export interface FaceShapeResult {
     shape: FaceShapeName;
     confidence: number;
     description: string;
-    recommendations: {
-        category: EarringStyle['category'];
-        reasoning: string;
-        suitability: 'excellent' | 'good' | 'avoid';
-    }[];
+    studTip: string;
 }

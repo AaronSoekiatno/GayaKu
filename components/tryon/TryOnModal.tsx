@@ -35,6 +35,7 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
     const { landmarks, isModelLoaded, error, getRawLandmarks } = useFaceDetection(videoElement);
     const [faceShapeResult, setFaceShapeResult] = useState<FaceShapeResult | null>(null);
     const [faceShapeWarning, setFaceShapeWarning] = useState<string | null>(null);
+    const [showAnalyzeTutorial, setShowAnalyzeTutorial] = useState(false);
 
     // Body scroll lock + Escape key
     useEffect(() => {
@@ -62,6 +63,23 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
             }
         };
     }, [capturedPhotoUrl]);
+
+    const dismissAnalyzeTutorial = () => {
+        setShowAnalyzeTutorial(false);
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem('tryon-analyze-tutorial-seen', '1');
+        }
+    };
+
+    useEffect(() => {
+        if (!isModelLoaded) return;
+        if (typeof window === 'undefined') return;
+
+        const hasSeenTutorial = window.localStorage.getItem('tryon-analyze-tutorial-seen') === '1';
+        if (!hasSeenTutorial) {
+            setShowAnalyzeTutorial(true);
+        }
+    }, [isModelLoaded]);
 
     const savePhotoToFile = async (blob: Blob) => {
         const suggestedName = `gayaku-snapshot-${Date.now()}.png`;
@@ -159,6 +177,10 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
     };
 
     const handleAnalyzeFaceShape = () => {
+        if (showAnalyzeTutorial) {
+            dismissAnalyzeTutorial();
+        }
+
         if (faceShapeResult) {
             setFaceShapeResult(null);
             return;
@@ -245,14 +267,33 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
                             <div className="group relative">
                                 <button
                                     onClick={handleAnalyzeFaceShape}
-                                    className={`relative glass w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/90 transition-all duration-300 cursor-pointer z-10 ${faceShapeResult ? 'ring-2 ring-[#d4af37] bg-white/90' : ''}`}
+                                    className={`peer relative glass w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/90 transition-all duration-300 cursor-pointer z-10 ${faceShapeResult ? 'ring-2 ring-[#d4af37] bg-white/90' : ''} ${showAnalyzeTutorial && !faceShapeResult ? 'animate-pulse ring-2 ring-white/70' : ''}`}
                                     aria-label="Analyze face shape"
                                 >
-                                    <IoAnalyticsOutline className={`w-6 h-6 transition-transform group-hover:scale-110 ${faceShapeResult ? 'text-[#d4af37]' : 'text-black'}`} />
+                                    <IoAnalyticsOutline className={`w-6 h-6 transition-transform hover:scale-110 ${faceShapeResult ? 'text-[#d4af37]' : 'text-black'}`} />
                                 </button>
-                                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap text-xs font-medium text-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-white/90 px-2 py-1 rounded-lg glass z-20">
+                                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap text-xs font-medium text-black opacity-0 peer-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-white/90 px-2 py-1 rounded-lg glass z-20">
                                     {faceShapeResult ? 'Close Analysis' : 'Analyze Face Shape'}
                                 </span>
+                                {showAnalyzeTutorial && !faceShapeResult && (
+                                    <>
+                                        <div className="absolute top-full right-0 mt-3 z-30 w-64">
+                                            <div className="absolute -top-1 right-5 h-3 w-3 rotate-45 bg-white/95 border-l border-t border-gray-200/70" />
+                                            <div className="rounded-xl bg-white/95 border border-gray-200/70 shadow-lg p-3 text-xs text-gray-800">
+                                                <p className="font-semibold text-gray-900">Step 1</p>
+                                                <p className="mt-1 leading-relaxed">
+                                                    <span className="font-semibold">Analyze</span> your face shape for personalized earring suggestions.
+                                                </p>
+                                                <button
+                                                    onClick={dismissAnalyzeTutorial}
+                                                    className="mt-2 text-[11px] font-medium text-[#6d5afc] hover:underline cursor-pointer"
+                                                >
+                                                    Got it
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -267,13 +308,6 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
                         <div className="absolute bottom-4 left-4 right-4 lg:right-auto lg:max-w-sm glass px-4 py-3 rounded-lg z-20 animate-slide-up">
                             <p className="text-sm text-gray-700">{faceShapeWarning}</p>
                         </div>
-                    )}
-
-                    {faceShapeResult && (
-                        <FaceShapeResultPanel
-                            result={faceShapeResult}
-                            onClose={() => setFaceShapeResult(null)}
-                        />
                     )}
 
                     {capturedPhotoUrl && (
@@ -292,7 +326,7 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
                                     aria-label="Download photo"
                                 >
                                     <IoDownloadOutline className="w-4 h-4 transition-transform group-hover:scale-110" />
-                                    <span className="text-[11px] font-medium leading-none">PNG</span>
+                                    <span className="text-[11px] font-medium leading-none">Download</span>
                                 </button>
                                 <button
                                     onClick={handleRetakePhoto}
@@ -321,6 +355,9 @@ export default function TryOnModal({ onClose }: TryOnModalProps) {
                         />
                     </div>
 
+                    {faceShapeResult && (
+                        <FaceShapeResultPanel result={faceShapeResult} />
+                    )}
                 </div>
             </div>
         </div>

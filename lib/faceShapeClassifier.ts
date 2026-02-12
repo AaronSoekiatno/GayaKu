@@ -47,61 +47,31 @@ function measureFace(landmarks: NormalizedLandmark[]): FaceMeasurements {
 
 const FACE_SHAPE_INFO: Record<FaceShapeName, {
     description: string;
-    recommendations: FaceShapeResult['recommendations'];
+    studTip: string;
 }> = {
     oval: {
         description: 'Balanced proportions with a gently rounded jawline and slightly wider cheekbones. Considered the most versatile face shape for jewelry.',
-        recommendations: [
-            { category: 'stud', reasoning: 'Studs complement without overpowering your balanced features.', suitability: 'excellent' },
-            { category: 'drop', reasoning: 'Drop earrings enhance your natural symmetry beautifully.', suitability: 'excellent' },
-            { category: 'hoop', reasoning: 'Hoops of any size work well with oval faces.', suitability: 'good' },
-            { category: 'chandelier', reasoning: 'Chandelier earrings add glamour without disrupting proportions.', suitability: 'good' },
-        ],
+        studTip: 'Studs enhance an oval face by sitting right at the midpoint of its balanced proportions, drawing the eye to your symmetry without competing with it.',
     },
     round: {
         description: 'Soft, curved features with nearly equal width and length. The cheekbones and face width are the most prominent features.',
-        recommendations: [
-            { category: 'drop', reasoning: 'Long drops create a lengthening effect that flatters round faces.', suitability: 'excellent' },
-            { category: 'chandelier', reasoning: 'Angular chandelier designs add dimension and elongate.', suitability: 'excellent' },
-            { category: 'hoop', reasoning: 'Elongated hoops complement the soft curves of a round face.', suitability: 'good' },
-            { category: 'stud', reasoning: 'Small studs can make a round face appear wider.', suitability: 'avoid' },
-        ],
+        studTip: 'Studs enhance a round face by adding a defined focal point near the ear, breaking up the soft curves and giving the appearance of added structure.',
     },
     square: {
         description: 'Strong jawline with a forehead and jaw of similar width. Angular features give a structured, defined appearance.',
-        recommendations: [
-            { category: 'hoop', reasoning: 'Round hoops soften angular jawline features beautifully.', suitability: 'excellent' },
-            { category: 'drop', reasoning: 'Curved drop designs counterbalance the strong jaw.', suitability: 'excellent' },
-            { category: 'stud', reasoning: 'Rounded studs soften the angles of a square face.', suitability: 'good' },
-            { category: 'chandelier', reasoning: 'Choose curved chandelier styles to complement angular features.', suitability: 'good' },
-        ],
+        studTip: 'Studs enhance a square face by introducing a small, rounded accent that softens the strong jawline and angular features without adding bulk.',
     },
     heart: {
         description: 'A wider forehead that narrows to a delicate, pointed chin. Often with high cheekbones creating a romantic silhouette.',
-        recommendations: [
-            { category: 'chandelier', reasoning: 'Wider at the bottom, they balance the narrower chin perfectly.', suitability: 'excellent' },
-            { category: 'drop', reasoning: 'Teardrop shapes add width at the jawline for balance.', suitability: 'excellent' },
-            { category: 'stud', reasoning: 'Simple studs keep the focus at ear level, a balanced zone.', suitability: 'good' },
-            { category: 'hoop', reasoning: 'Medium hoops add width near the jaw, which is flattering.', suitability: 'good' },
-        ],
+        studTip: 'Studs enhance a heart-shaped face by anchoring attention at ear level — the natural midpoint between the wider forehead and narrower chin — creating visual balance.',
     },
     oblong: {
         description: 'A face that is noticeably longer than it is wide, with a long straight cheek line. Elegant and elongated features.',
-        recommendations: [
-            { category: 'stud', reasoning: 'Studs add width at ear level without adding length.', suitability: 'excellent' },
-            { category: 'hoop', reasoning: 'Round hoops create width that balances the long face shape.', suitability: 'excellent' },
-            { category: 'chandelier', reasoning: 'Short, wide chandeliers work well for adding width.', suitability: 'good' },
-            { category: 'drop', reasoning: 'Long drops can make an oblong face appear even longer.', suitability: 'avoid' },
-        ],
+        studTip: 'Studs enhance an oblong face by adding width at ear level without elongating it further, helping to visually shorten and balance the face.',
     },
     diamond: {
         description: 'Dramatic cheekbones are the widest point, with a narrow forehead and jawline. Creates a striking, angular appearance.',
-        recommendations: [
-            { category: 'drop', reasoning: 'Drop earrings with wider bottoms balance the narrow jawline.', suitability: 'excellent' },
-            { category: 'chandelier', reasoning: 'Chandelier styles complement the dramatic cheekbone structure.', suitability: 'excellent' },
-            { category: 'stud', reasoning: 'Wider studs add fullness at ear level.', suitability: 'good' },
-            { category: 'hoop', reasoning: 'Hoops add width and softness to the angular features.', suitability: 'good' },
-        ],
+        studTip: 'Studs enhance a diamond face by adding fullness at ear level, complementing the wide cheekbones while softening the narrower forehead and jawline.',
     },
 };
 
@@ -163,6 +133,6 @@ export function classifyFaceShape(landmarks: NormalizedLandmark[]): FaceShapeRes
         shape,
         confidence,
         description: info.description,
-        recommendations: info.recommendations,
+        studTip: info.studTip,
     };
 }

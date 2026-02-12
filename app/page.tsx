@@ -53,7 +53,7 @@ export default function Home() {
               <IoScanOutline className="mx-auto h-8 w-8 text-gray-500" aria-hidden="true" />
               <h3 className="mt-7 text-lg font-semibold">Smart Face Scan</h3>
               <p className="mt-3 text-md text-gray-500 leading-relaxed break-words">
-                Our technology scans and analyzes your face shape to recommend and explain your best-fit earrings and hair styles.
+                Our technology scans and analyzes your face shape to recommend and explain your best-fit earrings.
               </p>
             </div>
           </div>
