@@ -20,7 +20,7 @@ export default function EarringGallery({
         <div className="w-full animate-slide-in">
             <h3 className="text-2xl font-semibold mb-4 gradient-text">Choose Your Style</h3>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 {earrings.map((earring) => {
                     const isSelected = selectedEarring?.id === earring.id;
 
@@ -29,9 +29,12 @@ export default function EarringGallery({
                             key={earring.id}
                             variant="glass"
                             className={`
-                cursor-pointer hover-lift transition-all duration-300
-                ${isSelected ? 'ring-2 ring-gold-500 animate-glow' : 'opacity-80 hover:opacity-100'}
-              `}
+                                cursor-pointer hover-lift transition-all duration-300 relative
+                                ${isSelected 
+                                    ? 'ring-4 ring-[#b8941f] border-4 border-[#b8941f] scale-105 shadow-lg shadow-[#b8941f]/30 z-10' 
+                                    : 'opacity-80 hover:opacity-100'
+                                }
+                            `}
                             onClick={() => onSelectEarring(earring)}
                         >
                             <div className="aspect-square relative mb-3 bg-black/20 rounded-lg overflow-hidden">
@@ -52,22 +55,6 @@ export default function EarringGallery({
                                     {earring.description}
                                 </p>
                             </div>
-
-                            {isSelected && (
-                                <div className="absolute top-2 right-2 w-6 h-6 bg-gold-500 rounded-full flex items-center justify-center">
-                                    <svg
-                                        className="w-4 h-4 text-white"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clipRule="evenodd"
-                                        />
-                                    </svg>
-                                </div>
-                            )}
                         </Card>
                     );
                 })}
@@ -76,8 +63,11 @@ export default function EarringGallery({
                 <Card
                     variant="glass"
                     className={`
-                        cursor-pointer hover-lift transition-all duration-300
-                        ${selectedEarring === null ? 'ring-2 ring-gold-500 animate-glow' : 'opacity-80 hover:opacity-100'}
+                        cursor-pointer hover-lift transition-all duration-300 relative
+                        ${selectedEarring === null 
+                            ? 'ring-4 ring-[#b8941f] border-4 border-[#b8941f] scale-105 shadow-lg shadow-[#b8941f]/30 z-10' 
+                            : 'opacity-80 hover:opacity-100'
+                        }
                     `}
                     onClick={() => onSelectEarring(null)}
                 >
@@ -105,22 +95,6 @@ export default function EarringGallery({
                             Remove earrings
                         </p>
                     </div>
-
-                    {selectedEarring === null && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-gold-500 rounded-full flex items-center justify-center">
-                            <svg
-                                className="w-4 h-4 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                />
-                            </svg>
-                        </div>
-                    )}
                 </Card>
             </div>
         </div>

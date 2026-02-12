@@ -11,6 +11,7 @@ interface GestureOverlayProps {
     onCustomizationChange: (customization: EarringCustomization) => void;
     canvasWidth: number;
     canvasHeight: number;
+    fullHeight?: boolean;
 }
 
 type DragTarget = 'left' | 'right' | null;
@@ -21,7 +22,8 @@ export default function GestureOverlay({
     customization,
     onCustomizationChange,
     canvasWidth,
-    canvasHeight
+    canvasHeight,
+    fullHeight = false
 }: GestureOverlayProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [dragTarget, setDragTarget] = useState<DragTarget>(null);
@@ -111,13 +113,13 @@ export default function GestureOverlay({
 
     // Get ear positions for visual guides
     const leftEarPos = landmarks ? {
-        x: (1 - landmarks.leftEar.x) * canvasWidth,
-        y: landmarks.leftEar.y * canvasHeight
+        x: (1 - landmarks.leftEarLobe.x) * canvasWidth,
+        y: landmarks.leftEarLobe.y * canvasHeight
     } : null;
 
     const rightEarPos = landmarks ? {
-        x: (1 - landmarks.rightEar.x) * canvasWidth,
-        y: landmarks.rightEar.y * canvasHeight
+        x: (1 - landmarks.rightEarLobe.x) * canvasWidth,
+        y: landmarks.rightEarLobe.y * canvasHeight
     } : null;
 
     // Current offsets for display
@@ -130,7 +132,7 @@ export default function GestureOverlay({
     return (
         <div
             className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden"
-            style={{ maxHeight: '80vh' }}
+            style={!fullHeight ? { maxHeight: '80vh' } : undefined}
         >
             {/* Instructions when not pinching */}
             {!pinchState.isPinching && (

@@ -1,29 +1,88 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { FaceLandmarks, EarringCustomization } from '@/lib/types';
+import { FaceLandmarks, EarringCustomization, HeadPose } from '@/lib/types';
 import { EarringStyle } from '@/lib/types';
 
 interface EarringCanvasProps {
-    videoElement: HTMLVideoElement | null;
     landmarks: FaceLandmarks | null;
     selectedEarrings: EarringStyle[];
     canvasWidth: number;
     canvasHeight: number;
     customization: EarringCustomization;
+    fullHeight?: boolean;
 }
 
-// Threshold for hiding earrings when face is turned too far
-// At 0.5 yaw, the ear starts becoming occluded
-const OCCLUSION_THRESHOLD = 0.45;
+// Size multiplier relative to inter-pupillary distance
+const BASE_SIZE_MULTIPLIER = 0.7;
+
+/**
+ * Compute earring opacity based on multi-axis head pose.
+ * Earrings fade out when the respective ear is turning away from the camera.
+ */
+function computeEarringOpacity(headPose: HeadPose, side: 'left' | 'right'): number {
+    const { yaw, pitch } = headPose;
+
+    // Hard cutoff: hide earring completely when ear is not visible
+    // 'left' in image space = user's RIGHT ear (due to mirror display)
+    // 'right' in image space = user's LEFT ear (due to mirror display)
+    // When user turns right → yaw goes negative → hide user's right ear ('left' side)
+    // When user turns left → yaw goes positive → hide user's left ear ('right' side)
+    const THRESHOLD = 0.12; // ~7 degrees — aggressive to match visual ear disappearance
+    if (side === 'left' && yaw < -THRESHOLD) return 0;
+    if (side === 'right' && yaw > THRESHOLD) return 0;
+
+    // Hide at extreme pitch (looking steeply up/down)
+    if (Math.abs(pitch) > 0.8) return 0;
+
+    return 1;
+}
+
+/**
+ * Draw an earring with canvas 2D transforms to simulate 3D perspective.
+ */
+function drawEarringWithTransform(
+    ctx: CanvasRenderingContext2D,
+    image: HTMLImageElement,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    headPose: HeadPose,
+    opacity: number,
+    offsetX: number,
+    offsetY: number,
+): void {
+    if (opacity <= 0) return;
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+
+    // Move to earring anchor point (where it attaches to ear)
+    const anchorX = x + offsetX;
+    const anchorY = y + offsetY;
+    ctx.translate(anchorX, anchorY);
+
+    // Tilt earring to match head roll (sideways tilt)
+    ctx.rotate(headPose.roll);
+
+    // Subtle skew to show perspective when head is turned
+    const skewFactor = Math.sin(headPose.yaw) * 0.4;
+    ctx.transform(1, skewFactor, 0, 1, 0, 0);
+
+    // Draw earring centered horizontally on anchor, hanging downward
+    ctx.drawImage(image, -width / 2, 0, width, height);
+
+    ctx.restore();
+}
 
 export default function EarringCanvas({
-    videoElement,
     landmarks,
     selectedEarrings,
     canvasWidth,
     canvasHeight,
-    customization
+    customization,
+    fullHeight = false
 }: EarringCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const earringImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
@@ -49,74 +108,50 @@ export default function EarringCanvas({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        // Get the first selected earring (we'll support multiple later)
         const earring = selectedEarrings[0];
         const earringImage = earringImagesRef.current.get(earring.id);
 
         if (!earringImage || !earringImage.complete) return;
 
-        // Calculate earring size based on scale factor and customization
-        const baseSize = 80; // Base size in pixels
-        const earringWidth = baseSize * (earring.scale || 1) * customization.scale;
-        const earringHeight = earringWidth; // Keep aspect ratio square for now
+        // Dynamic sizing based on face scale (inter-pupillary distance)
+        const earringWidth = landmarks.faceScale * canvasWidth * BASE_SIZE_MULTIPLIER
+            * (earring.scale || 1) * customization.scale;
+        // Use natural aspect ratio instead of forcing square
+        const earringHeight = earringWidth * (earringImage.naturalHeight / earringImage.naturalWidth);
 
-        // Convert normalized coordinates (0-1) to canvas coordinates
-        // Note: landmarks.x is already mirrored by MediaPipe for front camera
-        const leftEarX = landmarks.leftEar.x * canvasWidth;
-        const leftEarY = landmarks.leftEar.y * canvasHeight;
-        const rightEarX = landmarks.rightEar.x * canvasWidth;
-        const rightEarY = landmarks.rightEar.y * canvasHeight;
+        // Convert normalized earlobe coords to canvas pixels
+        const leftX = landmarks.leftEarLobe.x * canvasWidth;
+        const leftY = landmarks.leftEarLobe.y * canvasHeight;
+        const rightX = landmarks.rightEarLobe.x * canvasWidth;
+        const rightY = landmarks.rightEarLobe.y * canvasHeight;
 
-        // Calculate visibility based on face yaw
-        // faceYaw: negative = looking left, positive = looking right
-        const faceYaw = landmarks.faceYaw;
+        // Compute opacity for each ear based on head pose
+        const leftOpacity = computeEarringOpacity(landmarks.headPose, 'left');
+        const rightOpacity = computeEarringOpacity(landmarks.headPose, 'right');
 
-        // Show left earring when not looking too far left
-        // When faceYaw < -OCCLUSION_THRESHOLD, left ear is occluded (head turned left)
-        const showLeftEarring = faceYaw > -OCCLUSION_THRESHOLD;
+        // Draw left earring
+        drawEarringWithTransform(
+            ctx, earringImage,
+            leftX, leftY,
+            earringWidth, earringHeight,
+            landmarks.headPose,
+            leftOpacity,
+            customization.leftOffsetX,
+            customization.leftOffsetY,
+        );
 
-        // Show right earring when not looking too far right
-        // When faceYaw > OCCLUSION_THRESHOLD, right ear is occluded (head turned right)
-        const showRightEarring = faceYaw < OCCLUSION_THRESHOLD;
-
-        // Calculate opacity for smooth fade out near threshold
-        const leftOpacity = showLeftEarring
-            ? Math.min(1, (faceYaw + OCCLUSION_THRESHOLD) / 0.15)
-            : 0;
-        const rightOpacity = showRightEarring
-            ? Math.min(1, (OCCLUSION_THRESHOLD - faceYaw) / 0.15)
-            : 0;
-
-        // Draw earring on left ear (if visible)
-        if (leftOpacity > 0) {
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, Math.min(1, leftOpacity));
-            ctx.drawImage(
-                earringImage,
-                leftEarX - earringWidth / 2 + customization.leftOffsetX,
-                leftEarY + customization.leftOffsetY,
-                earringWidth,
-                earringHeight
-            );
-            ctx.restore();
-        }
-
-        // Draw earring on right ear (if visible)
-        if (rightOpacity > 0) {
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, Math.min(1, rightOpacity));
-            ctx.drawImage(
-                earringImage,
-                rightEarX - earringWidth / 2 + customization.rightOffsetX,
-                rightEarY + customization.rightOffsetY,
-                earringWidth,
-                earringHeight
-            );
-            ctx.restore();
-        }
+        // Draw right earring
+        drawEarringWithTransform(
+            ctx, earringImage,
+            rightX, rightY,
+            earringWidth, earringHeight,
+            landmarks.headPose,
+            rightOpacity,
+            customization.rightOffsetX,
+            customization.rightOffsetY,
+        );
 
     }, [landmarks, selectedEarrings, canvasWidth, canvasHeight, customization]);
 
@@ -128,7 +163,8 @@ export default function EarringCanvas({
             className="absolute top-0 left-0 w-full h-full pointer-events-none"
             style={{
                 transform: 'scaleX(-1)', // Mirror to match video
-                maxHeight: '80vh',
+                objectFit: 'cover', // Match video's object-fit so coordinates align
+                ...(!fullHeight && { maxHeight: '80vh' }),
             }}
         />
     );

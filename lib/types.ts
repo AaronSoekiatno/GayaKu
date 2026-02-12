@@ -7,10 +7,18 @@ export interface EarringStyle {
     scale?: number; // Optional scale factor for rendering
 }
 
+export interface HeadPose {
+    yaw: number;    // Horizontal rotation in radians: negative = looking left, positive = looking right
+    pitch: number;  // Vertical rotation in radians: negative = looking down, positive = looking up
+    roll: number;   // Tilt in radians: negative = tilting left, positive = tilting right
+}
+
 export interface FaceLandmarks {
-    leftEar: { x: number; y: number };
-    rightEar: { x: number; y: number };
-    faceYaw: number; // Horizontal rotation: negative = looking left, positive = looking right
+    leftEarLobe: { x: number; y: number };   // Estimated left earlobe position (normalized 0-1)
+    rightEarLobe: { x: number; y: number };  // Estimated right earlobe position (normalized 0-1)
+    headPose: HeadPose;                       // Full 3-axis head rotation
+    faceScale: number;                        // Inter-pupillary distance in normalized coords
+    faceDepth: number;                        // Average z-depth of face center landmarks
 }
 
 export interface EarringCustomization {

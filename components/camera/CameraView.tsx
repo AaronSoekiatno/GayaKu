@@ -7,9 +7,10 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface CameraViewProps {
     onVideoReady?: (video: HTMLVideoElement) => void;
+    fullHeight?: boolean;
 }
 
-export default function CameraView({ onVideoReady }: CameraViewProps) {
+export default function CameraView({ onVideoReady, fullHeight = false }: CameraViewProps) {
     const { videoRef, error, isLoading, hasPermission } = useCamera();
 
     // Notify parent when video is ready
@@ -56,16 +57,16 @@ export default function CameraView({ onVideoReady }: CameraViewProps) {
     }
 
     return (
-        <div className="relative w-full animate-fade-in">
+        <div className={`relative w-full animate-fade-in ${fullHeight ? 'h-full' : ''}`}>
             <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-auto rounded-xl shadow-2xl"
+                className={`w-full shadow-2xl ${fullHeight ? 'h-full object-cover' : 'h-auto rounded-xl'}`}
                 style={{
-                    transform: 'scaleX(-1)', // Mirror the video for natural selfie view
-                    maxHeight: '80vh',
+                    transform: 'scaleX(-1)',
+                    ...(!fullHeight && { maxHeight: '80vh' }),
                     objectFit: 'cover'
                 }}
             />
