@@ -4,7 +4,6 @@ import React from 'react';
 import useCamera from '@/hooks/useCamera';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { IoCameraOutline } from 'react-icons/io5';
 
 interface CameraViewProps {
     onVideoReady?: (video: HTMLVideoElement) => void;
@@ -12,40 +11,22 @@ interface CameraViewProps {
 }
 
 export default function CameraView({ onVideoReady, fullHeight = false }: CameraViewProps) {
-    const { videoRef, error, isLoading, hasPermission, startCamera } = useCamera();
+    const { videoRef, error, isLoading, hasPermission } = useCamera();
 
     // Notify parent when video is ready
     React.useEffect(() => {
+        console.log('[CameraView] Video ready check:', {
+            hasVideo: !!videoRef.current,
+            isLoading,
+            hasPermission,
+            videoReadyState: videoRef.current?.readyState
+        });
+        
         if (videoRef.current && !isLoading && hasPermission) {
+            console.log('[CameraView] Notifying parent that video is ready');
             onVideoReady?.(videoRef.current);
         }
     }, [videoRef, isLoading, hasPermission, onVideoReady]);
-
-    const handleEnableCamera = () => {
-        startCamera();
-    };
-
-    // Show initial state if camera hasn't been started yet (production mode)
-    if (hasPermission === null && !isLoading && !error) {
-        return (
-            <Card className="flex flex-col items-center justify-center min-h-[500px] animate-fade-in">
-                <div className="text-center max-w-md">
-                    <IoCameraOutline className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2 text-gray-300">Enable Camera</h3>
-                    <p className="text-gray-400 mb-6">
-                        Click the button below to enable your camera for virtual try-on.
-                    </p>
-                    <button
-                        onClick={handleEnableCamera}
-                        className="glass px-6 py-3 rounded-full flex items-center gap-2 hover:bg-white/90 transition-all duration-300 cursor-pointer text-black font-medium mx-auto"
-                    >
-                        <IoCameraOutline className="w-5 h-5" />
-                        Enable Camera
-                    </button>
-                </div>
-            </Card>
-        );
-    }
 
     if (isLoading) {
         return (
@@ -75,15 +56,8 @@ export default function CameraView({ onVideoReady, fullHeight = false }: CameraV
                     </svg>
                     <h3 className="text-xl font-semibold mb-2 text-red-400">Camera Access Required</h3>
                     <p className="text-gray-400 mb-4">{error}</p>
-                    <button
-                        onClick={handleEnableCamera}
-                        className="mt-4 glass px-6 py-3 rounded-full flex items-center gap-2 hover:bg-white/90 transition-all duration-300 cursor-pointer text-black font-medium"
-                    >
-                        <IoCameraOutline className="w-5 h-5" />
-                        Enable Camera
-                    </button>
-                    <p className="text-sm text-gray-500 mt-4">
-                        Click the button above to enable camera access.
+                    <p className="text-sm text-gray-500">
+                        Please enable camera permissions in your browser settings and refresh the page.
                     </p>
                 </div>
             </Card>
