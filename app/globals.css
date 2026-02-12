@@ -221,6 +221,22 @@ h6 {
   animation: glow 2s ease-in-out infinite;
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out;
+}
+
 /* Hover Effects */
 .hover-lift {
   transition: transform 0.3s ease, box-shadow 0.3s ease;

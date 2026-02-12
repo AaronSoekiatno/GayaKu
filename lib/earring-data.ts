@@ -6,7 +6,7 @@ export const earringStyles: EarringStyle[] = [
         name: 'Classic Studs',
         imageSrc: '/earrings/studs1.webp',
         category: 'stud',
-        description: 'Timeless studs for everyday elegance',
+        description: 'For everyday elegance',
         scale: 0.8
     },
     {
@@ -14,7 +14,7 @@ export const earringStyles: EarringStyle[] = [
         name: 'Elegant Studs',
         imageSrc: '/earrings/studs2.webp',
         category: 'stud',
-        description: 'Beautiful stud earrings with classic design',
+        description: 'Beautiful and classic design',
         scale: 0.9
     }
 ];

@@ -28,7 +28,9 @@ function computeEarringOpacity(headPose: HeadPose, side: 'left' | 'right'): numb
     // 'right' in image space = user's LEFT ear (due to mirror display)
     // When user turns right → yaw goes negative → hide user's right ear ('left' side)
     // When user turns left → yaw goes positive → hide user's left ear ('right' side)
-    const THRESHOLD = 0.12; // ~7 degrees — aggressive to match visual ear disappearance
+    // Near-zero threshold so earrings hide as soon as the head starts turning.
+    // Keep a tiny deadzone to avoid flicker from landmark noise while facing front.
+    const THRESHOLD = 0.04; // ~2 degrees
     if (side === 'left' && yaw < -THRESHOLD) return 0;
     if (side === 'right' && yaw > THRESHOLD) return 0;
 

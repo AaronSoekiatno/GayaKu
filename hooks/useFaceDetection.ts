@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { FaceLandmarks, HeadPose } from '@/lib/types';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { FaceLandmarks, HeadPose, NormalizedLandmark } from '@/lib/types';
 import { LandmarkSmoother } from '@/lib/smoothing';
 
 // Type definitions for MediaPipe (loaded dynamically)
-interface NormalizedLandmark {
-    x: number;
-    y: number;
-    z: number;
-}
-
 interface Results {
     multiFaceLandmarks?: NormalizedLandmark[][];
 }
@@ -123,6 +117,7 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
     const faceMeshRef = useRef<any>(null);
     const animationFrameRef = useRef<number | null>(null);
     const smootherRef = useRef(new LandmarkSmoother(0.65));
+    const rawLandmarksRef = useRef<NormalizedLandmark[] | null>(null);
     const [landmarks, setLandmarks] = useState<FaceLandmarks | null>(null);
     const [isModelLoaded, setIsModelLoaded] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -169,6 +164,7 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
 
                     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                         const fl = results.multiFaceLandmarks[0];
+                        rawLandmarksRef.current = fl;
                         const smoother = smootherRef.current;
 
                         // Estimate ear lobe positions
@@ -208,6 +204,7 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
                         });
                     } else {
                         setLandmarks(null);
+                        rawLandmarksRef.current = null;
                         smootherRef.current.reset();
                     }
                 });
@@ -251,9 +248,12 @@ export default function useFaceDetection(videoElement: HTMLVideoElement | null) 
         };
     }, [videoElement]);
 
+    const getRawLandmarks = useCallback(() => rawLandmarksRef.current, []);
+
     return {
         landmarks,
         isModelLoaded,
-        error
+        error,
+        getRawLandmarks,
     };
 }

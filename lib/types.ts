@@ -34,3 +34,22 @@ export interface Recommendation {
     reasoning: string;
     confidence: number;
 }
+
+export interface NormalizedLandmark {
+    x: number;
+    y: number;
+    z: number;
+}
+
+export type FaceShapeName = 'oval' | 'round' | 'square' | 'heart' | 'oblong' | 'diamond';
+
+export interface FaceShapeResult {
+    shape: FaceShapeName;
+    confidence: number;
+    description: string;
+    recommendations: {
+        category: EarringStyle['category'];
+        reasoning: string;
+        suitability: 'excellent' | 'good' | 'avoid';
+    }[];
+}
